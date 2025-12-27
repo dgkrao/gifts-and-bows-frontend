@@ -5,7 +5,7 @@
   <title>Admin Categories | Gifts_and_Bows</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- SHARED -->
+  <!-- STYLES -->
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/admin.css">
 
@@ -17,9 +17,7 @@
 <!-- ================= ADMIN NAVBAR ================= -->
 <header class="admin-navbar">
   <div class="admin-nav-container">
-
     <div class="admin-logo">Gifts_and_Bows · Admin</div>
-
     <div class="admin-hamburger" onclick="toggleAdminMenu()">☰</div>
 
     <nav class="admin-nav" id="adminNav">
@@ -31,7 +29,6 @@
       <a href="site-settings.html">Settings</a>
       <a href="#" onclick="logout()">Logout</a>
     </nav>
-
   </div>
 </header>
 
@@ -59,7 +56,6 @@
   <!-- CATEGORY LIST -->
   <div class="admin-card">
     <h3>Existing Categories</h3>
-
     <ul id="categoryList" class="admin-list"></ul>
   </div>
 
@@ -69,10 +65,18 @@
 
 <!-- ================= SCRIPT ================= -->
 <script>
-const ADMIN_API = "http://localhost:8080/api/admin/categories";
+/* =====================================================
+   GLOBAL API BASE (PRODUCTION)
+   ===================================================== */
+
+const API_BASE = "https://gifts-and-bows-backend.onrender.com";
+const ADMIN_API = `${API_BASE}/api/admin/categories`;
 
 document.addEventListener("DOMContentLoaded", loadCategories);
 
+/* =====================================================
+   LOAD CATEGORIES
+   ===================================================== */
 function loadCategories() {
   fetch(ADMIN_API, {
     headers: authHeaders("GET")
@@ -84,6 +88,7 @@ function loadCategories() {
     .then(data => {
       const list = document.getElementById("categoryList");
       list.innerHTML = "";
+
       data.forEach(cat => {
         list.innerHTML += `
           <li>
@@ -98,6 +103,9 @@ function loadCategories() {
     .catch(err => alert(err.message));
 }
 
+/* =====================================================
+   ADD CATEGORY
+   ===================================================== */
 function addCategory() {
   const nameInput = document.getElementById("categoryName");
   const name = nameInput.value.trim();
@@ -109,7 +117,7 @@ function addCategory() {
 
   fetch(ADMIN_API, {
     method: "POST",
-    headers: authHeaders("POST"),   // 🔑 CRITICAL FIX
+    headers: authHeaders("POST"),
     body: JSON.stringify({ name })
   })
     .then(res => {
@@ -120,6 +128,9 @@ function addCategory() {
     .catch(err => alert(err.message));
 }
 
+/* =====================================================
+   DELETE CATEGORY
+   ===================================================== */
 function deleteCategory(id) {
   if (!confirm("Delete this category?")) return;
 
@@ -134,7 +145,6 @@ function deleteCategory(id) {
     .catch(err => alert(err.message));
 }
 </script>
-
 
 </body>
 </html>
