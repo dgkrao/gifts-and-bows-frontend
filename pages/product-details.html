@@ -10,48 +10,96 @@
 </head>
 <body>
 
-<header></header>
+<header class="navbar"></header>
 
 <main class="container">
-  <div id="productBox"></div>
+  <div id="productBox">Loading product...</div>
 </main>
 
-<footer></footer>
+<footer class="footer"></footer>
 
 <script>
-const API = "http://localhost:8080/api";
-const id = new URLSearchParams(window.location.search).get("id");
+/* =====================================================
+   LOAD PRODUCT DETAILS
+   ===================================================== */
 
-if (!id) {
-  document.getElementById("productBox").innerHTML = "<p>Invalid product</p>";
+const productId = new URLSearchParams(window.location.search).get("id");
+const box = document.getElementById("productBox");
+
+if (!productId) {
+  box.innerHTML = "<p>Invalid product.</p>";
 } else {
-  fetch(API + "/products")
-    .then(r => r.json())
-    .then(products => {
-      const p = products.find(x => x.id == id);
-      if (!p) return;
 
-      document.getElementById("productBox").innerHTML = `
+  fetch(`${API_BASE}/products/${productId}`)
+    .then(res => {
+      if (!res.ok) throw new Error("Product not found");
+      return res.json();
+    })
+    .then(p => {
+      const image = p.imageUrls
+        ? p.imageUrls.split(",")[0]
+        : "placeholder.jpg";
+
+      box.innerHTML = `
         <div class="product-detail-card">
-          <img src="http://localhost:8080/uploads/${p.imageUrls.split(',')[0]}" />
+
+          <img
+            src="${API_BASE.replace('/api','')}/uploads/${image}"
+            alt="${p.name}"
+          />
 
           <div class="details">
             <h2>${p.name}</h2>
-            <p class="category">${p.category?.name}</p>
+            <p class="category">${p.category?.name || ""}</p>
 
             <p class="price">
-              ₹${p.discountedPrice && p.discountedPrice > 0 ? p.discountedPrice : p.price}
+              ₹${
+                p.discountedPrice && p.discountedPrice > 0
+                  ? p.discountedPrice
+                  : p.price
+              }
             </p>
 
-            ${p.discountedPrice && p.discountedPrice > 0 ? `<p class="old-price">₹${p.price}</p>` : ""}
+            ${
+              p.discountedPrice && p.discountedPrice > 0
+                ? `<p class="old-price">₹${p.price}</p>`
+                : ""
+            }
 
-            <p>${p.description || "No description"}</p>
+            <p>${p.description || "No description available."}</p>
 
-            <button onclick="alert('Cart coming next')">Add to Cart</button>
+            <button onclick="addToCart(${p.id})">
+              Add to Cart
+            </button>
           </div>
+
         </div>
       `;
+    })
+    .catch(err => {
+      box.innerHTML = `<p>${err.message}</p>`;
     });
+}
+
+/* =====================================================
+   ADD TO CART (BASIC)
+   ===================================================== */
+
+function addToCart(productId) {
+  if (!getToken()) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  fetch(`${API_BASE}/cart/add/${productId}`, {
+    method: "POST",
+    headers: authHeaders("POST")
+  })
+    .then(res => {
+      if (!res.ok) throw new Error("Failed to add to cart");
+      alert("Added to cart");
+    })
+    .catch(err => alert(err.message));
 }
 </script>
 

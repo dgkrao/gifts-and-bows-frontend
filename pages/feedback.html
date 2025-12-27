@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Feedback | Gifts_and_Bows</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <link rel="stylesheet" href="../css/main.css">
   <script defer src="../js/app.js"></script>
 </head>
@@ -13,6 +14,7 @@
 
 <main>
 
+  <!-- SUBMIT FEEDBACK -->
   <div class="form-container">
     <h2>Leave Feedback</h2>
     <input id="username" placeholder="Your Name">
@@ -20,9 +22,10 @@
     <button onclick="submitFeedback()">Submit</button>
   </div>
 
+  <!-- FEEDBACK LIST -->
   <div class="form-container">
     <h2>What Customers Say</h2>
-    <div id="feedbackList"></div>
+    <div id="feedbackList">Loading...</div>
   </div>
 
 </main>
@@ -30,27 +33,49 @@
 <footer class="footer"></footer>
 
 <script>
+/* =====================================================
+   SUBMIT FEEDBACK
+   ===================================================== */
 function submitFeedback() {
-  fetch(API_BASE + "/feedback", {
+
+  const username = document.getElementById("username").value.trim();
+  const message = document.getElementById("message").value.trim();
+
+  if (!username || !message) {
+    alert("Please enter your name and feedback");
+    return;
+  }
+
+  fetch(`${API_BASE}/feedback`, {
     method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({
-      username: document.getElementById("username").value,
-      message: document.getElementById("message").value
+    headers: authHeaders("POST"),
+    body: JSON.stringify({ username, message })
+  })
+    .then(res => {
+      if (!res.ok) throw new Error("Failed to submit feedback");
+      alert("Feedback submitted");
+      location.reload();
     })
-  }).then(() => {
-    alert("Feedback submitted");
-    location.reload();
-  });
+    .catch(err => alert(err.message));
 }
 
-fetch(API_BASE + "/feedback")
-  .then(res => res.json())
+/* =====================================================
+   LOAD FEEDBACK
+   ===================================================== */
+fetch(`${API_BASE}/feedback`)
+  .then(res => {
+    if (!res.ok) throw new Error("Failed to load feedback");
+    return res.json();
+  })
   .then(data => {
     const box = document.getElementById("feedbackList");
     box.innerHTML = data.length
       ? data.map(f => `<p>⭐ ${f.message}</p>`).join("")
       : "<p>No feedback yet.</p>";
+  })
+  .catch(() => {
+    document.getElementById("feedbackList").innerHTML =
+      "<p>Error loading feedback.</p>";
   });
 </script>
 

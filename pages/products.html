@@ -10,7 +10,7 @@
 </head>
 <body>
 
-<header></header>
+<header class="navbar"></header>
 
 <main class="container">
 
@@ -24,14 +24,17 @@
   </div>
 
   <!-- PRODUCTS GRID -->
-  <div class="product-grid" id="productGrid"></div>
+  <div class="product-grid" id="productGrid">Loading...</div>
 
 </main>
 
-<footer></footer>
+<footer class="footer"></footer>
 
 <script>
-const API = "http://localhost:8080/api";
+/* =====================================================
+   PRODUCTS PAGE
+   ===================================================== */
+
 let ALL_PRODUCTS = [];
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -39,43 +42,78 @@ document.addEventListener("DOMContentLoaded", () => {
   const grid = document.getElementById("productGrid");
   const filter = document.getElementById("categoryFilter");
 
-  /* LOAD CATEGORIES */
-  fetch(API + "/categories")
-    .then(r => r.json())
+  /* ================= LOAD CATEGORIES ================= */
+  fetch(`${API_BASE}/categories`)
+    .then(res => {
+      if (!res.ok) throw new Error("Failed to load categories");
+      return res.json();
+    })
     .then(cats => {
       cats.forEach(c => {
         filter.innerHTML += `<option value="${c.id}">${c.name}</option>`;
       });
+    })
+    .catch(() => {
+      filter.innerHTML = `<option value="">Categories unavailable</option>`;
     });
 
-  /* LOAD PRODUCTS */
-  fetch(API + "/products")
-    .then(r => r.json())
+  /* ================= LOAD PRODUCTS ================= */
+  fetch(`${API_BASE}/products`)
+    .then(res => {
+      if (!res.ok) throw new Error("Failed to load products");
+      return res.json();
+    })
     .then(products => {
       ALL_PRODUCTS = products;
       render(products);
+    })
+    .catch(() => {
+      grid.innerHTML = "<p>Error loading products.</p>";
     });
 
+  /* ================= FILTER ================= */
   filter.addEventListener("change", () => {
     const id = filter.value;
-    if (!id) render(ALL_PRODUCTS);
-    else render(ALL_PRODUCTS.filter(p => p.category?.id == id));
+    render(
+      id
+        ? ALL_PRODUCTS.filter(p => p.category?.id == id)
+        : ALL_PRODUCTS
+    );
   });
 
+  /* ================= RENDER ================= */
   function render(products) {
     grid.innerHTML = "";
 
     if (!products.length) {
-      grid.innerHTML = "<p>No products found</p>";
+      grid.innerHTML = "<p>No products found.</p>";
       return;
     }
 
     products.forEach(p => {
+      const image = p.imageUrls
+        ? p.imageUrls.split(",")[0]
+        : "placeholder.jpg";
+
       grid.innerHTML += `
-        <div class="product-card" onclick="location.href='product-details.html?id=${p.id}'">
-          <img src="http://localhost:8080/uploads/${p.imageUrls.split(',')[0]}" />
+        <div class="product-card"
+             onclick="location.href='product-details.html?id=${p.id}'">
+
+          <img
+            src="${API_BASE.replace('/api','')}/uploads/${image}"
+            alt="${p.name}"
+          />
+
           <h3>${p.name}</h3>
-          <p class="price">₹${p.discountedPrice && p.discountedPrice > 0 ? p.discountedPrice : p.price}</p>
+
+          <p class="price">
+            ₹${
+              p.discountedPrice && p.discountedPrice > 0
+                ? p.discountedPrice
+                : p.price
+            }
+          </p>
+
         </div>
       `;
     });

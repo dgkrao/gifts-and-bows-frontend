@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Track Order | Gifts_and_Bows</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <link rel="stylesheet" href="../css/main.css">
   <script defer src="../js/app.js"></script>
 </head>
@@ -14,18 +15,52 @@
 <main>
   <div class="form-container">
     <h2>Track Order</h2>
-    <input id="orderId" placeholder="Enter Order ID">
-    <button onclick="track()">Track</button>
-    <p id="status"></p>
+
+    <input
+      id="orderId"
+      placeholder="Enter Order ID"
+      type="number"
+      required
+    >
+
+    <button onclick="trackOrder()">Track</button>
+
+    <p id="status" style="margin-top:12px;"></p>
   </div>
 </main>
 
 <footer class="footer"></footer>
 
 <script>
-function track() {
-  document.getElementById("status").innerText =
-    "Status: Out for delivery";
+/* =====================================================
+   TRACK ORDER
+   ===================================================== */
+function trackOrder() {
+
+  const orderId = document.getElementById("orderId").value.trim();
+  const statusBox = document.getElementById("status");
+
+  if (!orderId) {
+    statusBox.innerText = "Please enter a valid Order ID";
+    return;
+  }
+
+  statusBox.innerText = "Fetching order status...";
+
+  fetch(`${API_BASE}/orders/track/${orderId}`, {
+    headers: authHeaders("GET")
+  })
+    .then(res => {
+      if (res.status === 404) throw new Error("Order not found");
+      if (!res.ok) throw new Error("Unable to track order");
+      return res.json();
+    })
+    .then(order => {
+      statusBox.innerText = `Status: ${order.status}`;
+    })
+    .catch(err => {
+      statusBox.innerText = err.message;
+    });
 }
 </script>
 

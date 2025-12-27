@@ -1,11 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Admin Orders</title>
+  <meta charset="UTF-8">
+  <title>Admin Orders | Gifts_and_Bows</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/admin.css">
+
+  <!-- CORE JS -->
   <script defer src="../js/app.js"></script>
 </head>
 <body class="admin-body">
@@ -14,11 +17,12 @@
   <div class="admin-nav-container">
     <div class="admin-logo">Gifts_and_Bows · Admin</div>
     <div class="admin-hamburger" onclick="toggleAdminMenu()">☰</div>
+
     <nav class="admin-nav" id="adminNav">
       <a href="dashboard.html">Dashboard</a>
       <a href="categories.html">Categories</a>
       <a href="products.html">Products</a>
-      <a href="orders.html">Orders</a>
+      <a href="orders.html" class="active">Orders</a>
       <a href="feedback.html">Feedback</a>
       <a href="site-settings.html">Site Settings</a>
       <a href="#" onclick="logout()">Logout</a>
@@ -28,20 +32,38 @@
 
 <main class="admin-container">
   <h1 class="admin-title">Orders</h1>
-  <div id="orders" class="admin-card"></div>
+
+  <div id="orders" class="admin-card">
+    <p>Loading orders…</p>
+  </div>
 </main>
 
 <footer class="footer"></footer>
 
+<!-- ================= SCRIPT ================= -->
 <script>
-fetch(API_BASE + "/orders/0", { headers: authHeaders(false) })
-  .then(r => r.json())
-  .then(o => {
-    orders.innerHTML = o.map(x =>
-      `<p>#${x.id} - ${x.status}</p>`
-    ).join("");
-  });
-</script>
+/* =====================================================
+   GLOBAL API BASE (PRODUCTION)
+   ===================================================== */
 
-</body>
-</html>
+const API_BASE = "https://gifts-and-bows-backend.onrender.com";
+const ORDERS_API = `${API_BASE}/api/admin/orders`;
+
+document.addEventListener("DOMContentLoaded", loadOrders);
+
+/* =====================================================
+   LOAD ORDERS
+   ===================================================== */
+function loadOrders() {
+  fetch(ORDERS_API, {
+    headers: authHeaders("GET")
+  })
+    .then(res => {
+      if (!res.ok) throw new Error("Failed to load orders");
+      return res.json();
+    })
+    .then(data => {
+      const ordersDiv = document.getElementById("orders");
+
+      if (!data || data.length === 0) {
+        ordersDiv.innerHTML = "<p>No orders foun

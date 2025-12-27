@@ -7,12 +7,28 @@
 
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/admin.css">
+
+  <!-- CORE JS -->
   <script defer src="../js/app.js"></script>
 </head>
 
 <body class="admin-body">
 
-<header class="admin-navbar"></header>
+<header class="admin-navbar">
+  <div class="admin-nav-container">
+    <div class="admin-logo">Gifts_and_Bows · Admin</div>
+    <div class="admin-hamburger" onclick="toggleAdminMenu()">☰</div>
+    <nav class="admin-nav" id="adminNav">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="categories.html">Categories</a>
+      <a href="products.html" class="active">Products</a>
+      <a href="orders.html">Orders</a>
+      <a href="feedback.html">Feedback</a>
+      <a href="site-settings.html">Site Settings</a>
+      <a href="#" onclick="logout()">Logout</a>
+    </nav>
+  </div>
+</header>
 
 <main class="admin-container">
 
@@ -30,7 +46,7 @@
     <input id="pQty" type="number" placeholder="Quantity">
     <input id="pImages" type="file" multiple>
 
-    <button onclick="addProduct()">Add Product</button>
+    <button class="admin-btn" onclick="addProduct()">Add Product</button>
   </div>
 
   <h3>Filter</h3>
@@ -42,57 +58,104 @@
 
 </main>
 
-<footer></footer>
+<footer class="footer"></footer>
 
+<!-- ================= SCRIPT ================= -->
 <script>
-const API = "http://localhost:8080/api";
-const token = localStorage.getItem("token");
-let ALL = [];
+/* =====================================================
+   GLOBAL API BASE (PRODUCTION)
+   ===================================================== */
 
-document.addEventListener("DOMContentLoaded", () => {
+const API_BASE = "https://gifts-and-bows-backend.onrender.com";
+const CATEGORY_API = `${API_BASE}/api/categories`;
+const PRODUCT_API  = `${API_BASE}/api/admin/products`;
 
+let ALL_PRODUCTS = [];
+
+document.addEventListener("DOMContentLoaded", init);
+
+/* =====================================================
+   INIT
+   ===================================================== */
+function init() {
+  loadCategories();
+  loadProducts();
+
+  document.getElementById("filterCategory")
+    .addEventListener("change", filterProducts);
+}
+
+/* =====================================================
+   LOAD CATEGORIES
+   ===================================================== */
+function loadCategories() {
   const cat = document.getElementById("adminCategory");
   const filter = document.getElementById("filterCategory");
-  const grid = document.getElementById("grid");
 
-  fetch(API + "/categories")
+  fetch(CATEGORY_API)
     .then(r => r.json())
     .then(cats => {
       cat.innerHTML = `<option value="">Select</option>`;
       filter.innerHTML = `<option value="">All Categories</option>`;
+
       cats.forEach(c => {
         cat.innerHTML += `<option value="${c.id}">${c.name}</option>`;
         filter.innerHTML += `<option value="${c.id}">${c.name}</option>`;
       });
-    });
+    })
+    .catch(() => alert("Failed to load categories"));
+}
 
-  fetch(API + "/admin/products", {
-    headers: { Authorization: "Bearer " + token }
+/* =====================================================
+   LOAD PRODUCTS
+   ===================================================== */
+function loadProducts() {
+  fetch(PRODUCT_API, {
+    headers: authHeaders("GET")
   })
-    .then(r => r.json())
-    .then(p => {
-      ALL = p;
-      render(p);
-    });
+    .then(r => {
+      if (!r.ok) throw new Error("Unauthorized");
+      return r.json();
+    })
+    .then(products => {
+      ALL_PRODUCTS = products;
+      renderProducts(products);
+    })
+    .catch(err => alert(err.message));
+}
 
-  filter.addEventListener("change", () => {
-    render(filter.value ? ALL.filter(x => x.category?.id == filter.value) : ALL);
-  });
+/* =====================================================
+   FILTER
+   ===================================================== */
+function filterProducts() {
+  const val = filterCategory.value;
+  renderProducts(val
+    ? ALL_PRODUCTS.filter(p => p.category?.id == val)
+    : ALL_PRODUCTS
+  );
+}
 
-  function render(list) {
-    grid.innerHTML = list.map(p => `
-      <div class="admin-card">
-        <h3>${p.name}</h3>
-        <p>${p.category?.name}</p>
-        <p>₹${p.price}</p>
-        <p>Stock: ${p.quantity}</p>
-      </div>
-    `).join("");
-  }
-});
+/* =====================================================
+   RENDER
+   ===================================================== */
+function renderProducts(list) {
+  const grid = document.getElementById("grid");
+  grid.innerHTML = list.map(p => `
+    <div class="admin-card">
+      <h3>${p.name}</h3>
+      <p>${p.category?.name || "Uncategorised"}</p>
+      <p>₹${p.price}</p>
+      <p>Stock: ${p.quantity}</p>
+    </div>
+  `).join("");
+}
 
+/* =====================================================
+   ADD PRODUCT
+   ===================================================== */
 function addProduct() {
   const fd = new FormData();
+
   fd.append("name", pName.value);
   fd.append("description", pDesc.value);
   fd.append("price", pPrice.value);
@@ -102,16 +165,16 @@ function addProduct() {
 
   [...pImages.files].forEach(f => fd.append("images", f));
 
-  fetch(API + "/admin/products", {
+  fetch(PRODUCT_API, {
     method: "POST",
-    headers: { Authorization: "Bearer " + token },
+    headers: authHeaders("POST"),
     body: fd
   })
-  .then(r => {
-    if (!r.ok) throw new Error("Failed");
-    location.reload();
-  })
-  .catch(e => alert(e.message));
+    .then(r => {
+      if (!r.ok) throw new Error("Failed to add product");
+      location.reload();
+    })
+    .catch(e => alert(e.message));
 }
 </script>
 

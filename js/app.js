@@ -1,8 +1,8 @@
 /* =====================================================
-   GLOBAL CONFIG
+   GLOBAL CONFIG (PRODUCTION)
    ===================================================== */
 
-const API_BASE = "http://localhost:8080/api";
+const API_BASE = "https://gifts-and-bows-backend.onrender.com/api";
 
 /* =====================================================
    INIT
@@ -34,21 +34,20 @@ function getRole() {
   }
 }
 
-function authHeaders(isJson = false) {
+function authHeaders(method = "GET") {
   const headers = {};
-  const token = localStorage.getItem("token");
+  const token = getToken();
 
   if (token) {
     headers["Authorization"] = "Bearer " + token;
   }
 
-  if (isJson) {
+  if (method !== "GET") {
     headers["Content-Type"] = "application/json";
   }
 
   return headers;
 }
-
 
 function logout() {
   localStorage.clear();
@@ -182,7 +181,7 @@ function toggleDropdown() {
    ===================================================== */
 
 function loadUserCategories() {
-  fetch(API_BASE + "/categories")
+  fetch(`${API_BASE}/categories`)
     .then(res => res.json())
     .then(categories => {
       const dropdown = document.getElementById("categoryDropdown");
@@ -226,7 +225,7 @@ function login() {
     return;
   }
 
-  fetch(API_BASE + "/auth/login", {
+  fetch(`${API_BASE}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password })
@@ -245,7 +244,7 @@ function login() {
 }
 
 function register() {
-  fetch(API_BASE + "/auth/register", {
+  fetch(`${API_BASE}/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

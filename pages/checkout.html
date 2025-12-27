@@ -16,49 +16,11 @@
   <div class="form-container">
     <h2>Delivery Details</h2>
 
-    <!-- Mobile Number -->
-    <input
-      id="mobile"
-      type="tel"
-      placeholder="Mobile Number"
-      pattern="[0-9]{10}"
-      maxlength="10"
-      required
-    >
-
-    <!-- Address -->
-    <textarea
-      id="address"
-      placeholder="House No, Street, Area"
-      rows="3"
-      required
-    ></textarea>
-
-    <!-- District -->
-    <input
-      id="district"
-      type="text"
-      placeholder="District"
-      required
-    >
-
-    <!-- State -->
-    <input
-      id="state"
-      type="text"
-      placeholder="State"
-      required
-    >
-
-    <!-- Pincode -->
-    <input
-      id="pincode"
-      type="number"
-      placeholder="Pincode"
-      inputmode="numeric"
-      maxlength="6"
-      required
-    >
+    <input id="mobile" type="tel" placeholder="Mobile Number" maxlength="10" required>
+    <textarea id="address" placeholder="House No, Street, Area" rows="3" required></textarea>
+    <input id="district" type="text" placeholder="District" required>
+    <input id="state" type="text" placeholder="State" required>
+    <input id="pincode" type="text" placeholder="Pincode" maxlength="6" required>
 
     <button onclick="placeOrder()">Pay via UPI</button>
   </div>
@@ -67,6 +29,16 @@
 <footer class="footer"></footer>
 
 <script>
+/* =====================================================
+   AUTH GUARD
+   ===================================================== */
+if (!getToken()) {
+  window.location.href = "login.html";
+}
+
+/* =====================================================
+   PLACE ORDER
+   ===================================================== */
 function placeOrder() {
 
   const order = {
@@ -77,29 +49,33 @@ function placeOrder() {
     pincode: pincode.value.trim()
   };
 
-  /* ===== BASIC VALIDATION ===== */
+  /* ===== VALIDATION ===== */
   if (
     order.mobile.length !== 10 ||
+    order.pincode.length !== 6 ||
     !order.address ||
     !order.district ||
-    !order.state ||
-    order.pincode.length !== 6
+    !order.state
   ) {
     alert("Please enter valid delivery details");
     return;
   }
 
-  fetch(API_BASE + "/orders", {
+  fetch(`${API_BASE}/orders`, {
     method: "POST",
-    headers: authHeaders(),
+    headers: authHeaders("POST"),
     body: JSON.stringify(order)
   })
-  .then(res => {
-    if (!res.ok) throw new Error("Order failed");
-    alert("Order placed successfully");
-    window.location.href = "orders.html";
-  })
-  .catch(err => alert(err.message));
+    .then(res => {
+      if (res.status === 401 || res.status === 403) {
+        logout();
+        return;
+      }
+      if (!res.ok) throw new Error("Order failed");
+      alert("Order placed successfully");
+      window.location.href = "orders.html";
+    })
+    .catch(err => alert(err.message));
 }
 </script>
 
