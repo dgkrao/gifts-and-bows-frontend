@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Products | Gifts_and_Bows</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="../css/main.css">
+  <script defer src="../js/app.js"></script>
+</head>
+<body>
+
+<header></header>
+
+<main class="container">
+
+  <h1 class="page-title">Our Products</h1>
+
+  <!-- CATEGORY FILTER -->
+  <div class="filter-bar">
+    <select id="categoryFilter">
+      <option value="">All Categories</option>
+    </select>
+  </div>
+
+  <!-- PRODUCTS GRID -->
+  <div class="product-grid" id="productGrid"></div>
+
+</main>
+
+<footer></footer>
+
+<script>
+const API = "http://localhost:8080/api";
+let ALL_PRODUCTS = [];
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  const grid = document.getElementById("productGrid");
+  const filter = document.getElementById("categoryFilter");
+
+  /* LOAD CATEGORIES */
+  fetch(API + "/categories")
+    .then(r => r.json())
+    .then(cats => {
+      cats.forEach(c => {
+        filter.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+      });
+    });
+
+  /* LOAD PRODUCTS */
+  fetch(API + "/products")
+    .then(r => r.json())
+    .then(products => {
+      ALL_PRODUCTS = products;
+      render(products);
+    });
+
+  filter.addEventListener("change", () => {
+    const id = filter.value;
+    if (!id) render(ALL_PRODUCTS);
+    else render(ALL_PRODUCTS.filter(p => p.category?.id == id));
+  });
+
+  function render(products) {
+    grid.innerHTML = "";
+
+    if (!products.length) {
+      grid.innerHTML = "<p>No products found</p>";
+      return;
+    }
+
+    products.forEach(p => {
+      grid.innerHTML += `
+        <div class="product-card" onclick="location.href='product-details.html?id=${p.id}'">
+          <img src="http://localhost:8080/uploads/${p.imageUrls.split(',')[0]}" />
+          <h3>${p.name}</h3>
+          <p class="price">₹${p.discountedPrice && p.discountedPrice > 0 ? p.discountedPrice : p.price}</p>
+        </div>
+      `;
+    });
+  }
+});
+</script>
+
+</body>
+</html>

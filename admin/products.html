@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Products | Gifts_and_Bows</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/admin.css">
+  <script defer src="../js/app.js"></script>
+</head>
+
+<body class="admin-body">
+
+<header class="admin-navbar"></header>
+
+<main class="admin-container">
+
+  <h1 class="admin-title">Products</h1>
+
+  <!-- ADD PRODUCT -->
+  <div class="admin-card admin-form">
+    <input id="pName" placeholder="Product Name">
+    <textarea id="pDesc" placeholder="Description"></textarea>
+
+    <select id="adminCategory"></select>
+
+    <input id="pPrice" type="number" placeholder="Price (₹)">
+    <input id="pDiscount" type="number" placeholder="Discount Price (₹)">
+    <input id="pQty" type="number" placeholder="Quantity">
+    <input id="pImages" type="file" multiple>
+
+    <button onclick="addProduct()">Add Product</button>
+  </div>
+
+  <h3>Filter</h3>
+  <select id="filterCategory">
+    <option value="">All Categories</option>
+  </select>
+
+  <div class="admin-grid" id="grid"></div>
+
+</main>
+
+<footer></footer>
+
+<script>
+const API = "http://localhost:8080/api";
+const token = localStorage.getItem("token");
+let ALL = [];
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  const cat = document.getElementById("adminCategory");
+  const filter = document.getElementById("filterCategory");
+  const grid = document.getElementById("grid");
+
+  fetch(API + "/categories")
+    .then(r => r.json())
+    .then(cats => {
+      cat.innerHTML = `<option value="">Select</option>`;
+      filter.innerHTML = `<option value="">All Categories</option>`;
+      cats.forEach(c => {
+        cat.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+        filter.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+      });
+    });
+
+  fetch(API + "/admin/products", {
+    headers: { Authorization: "Bearer " + token }
+  })
+    .then(r => r.json())
+    .then(p => {
+      ALL = p;
+      render(p);
+    });
+
+  filter.addEventListener("change", () => {
+    render(filter.value ? ALL.filter(x => x.category?.id == filter.value) : ALL);
+  });
+
+  function render(list) {
+    grid.innerHTML = list.map(p => `
+      <div class="admin-card">
+        <h3>${p.name}</h3>
+        <p>${p.category?.name}</p>
+        <p>₹${p.price}</p>
+        <p>Stock: ${p.quantity}</p>
+      </div>
+    `).join("");
+  }
+});
+
+function addProduct() {
+  const fd = new FormData();
+  fd.append("name", pName.value);
+  fd.append("description", pDesc.value);
+  fd.append("price", pPrice.value);
+  fd.append("discountedPrice", pDiscount.value || 0);
+  fd.append("quantity", pQty.value);
+  fd.append("categoryId", adminCategory.value);
+
+  [...pImages.files].forEach(f => fd.append("images", f));
+
+  fetch(API + "/admin/products", {
+    method: "POST",
+    headers: { Authorization: "Bearer " + token },
+    body: fd
+  })
+  .then(r => {
+    if (!r.ok) throw new Error("Failed");
+    location.reload();
+  })
+  .catch(e => alert(e.message));
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard | Gifts_and_Bows</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/admin.css">
+  <script defer src="../js/app.js"></script>
+</head>
+<body class="admin-body">
+
+<header class="admin-navbar">
+  <div class="admin-nav-container">
+    <div class="admin-logo">Gifts_and_Bows · Admin</div>
+    <div class="admin-hamburger" onclick="toggleAdminMenu()">☰</div>
+    <nav class="admin-nav" id="adminNav">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="categories.html">Categories</a>
+      <a href="products.html">Products</a>
+      <a href="orders.html">Orders</a>
+      <a href="feedback.html">Feedback</a>
+      <a href="site-settings.html">Site Settings</a>
+      <a href="#" onclick="logout()">Logout</a>
+    </nav>
+  </div>
+</header>
+
+<main class="admin-container">
+  <h1 class="admin-title">Dashboard</h1>
+  <p class="admin-subtitle">Welcome to admin panel</p>
+
+  <div class="admin-grid">
+    <div class="admin-card"><h3>Categories</h3><a class="admin-btn" href="categories.html">Manage</a></div>
+    <div class="admin-card"><h3>Products</h3><a class="admin-btn" href="products.html">Manage</a></div>
+    <div class="admin-card"><h3>Orders</h3><a class="admin-btn" href="orders.html">View</a></div>
+    <div class="admin-card"><h3>Feedback</h3><a class="admin-btn" href="feedback.html">Review</a></div>
+    <div class="admin-card"><h3>Site Settings</h3><a class="admin-btn" href="site-settings.html">Edit</a></div>
+  </div>
+</main>
+
+<footer class="footer"></footer>
+</body>
+</html>

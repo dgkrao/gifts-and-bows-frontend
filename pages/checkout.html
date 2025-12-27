@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Checkout | Gifts_and_Bows</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="../css/main.css">
+  <script defer src="../js/app.js"></script>
+</head>
+<body>
+
+<header class="navbar"></header>
+
+<main>
+  <div class="form-container">
+    <h2>Delivery Details</h2>
+
+    <!-- Mobile Number -->
+    <input
+      id="mobile"
+      type="tel"
+      placeholder="Mobile Number"
+      pattern="[0-9]{10}"
+      maxlength="10"
+      required
+    >
+
+    <!-- Address -->
+    <textarea
+      id="address"
+      placeholder="House No, Street, Area"
+      rows="3"
+      required
+    ></textarea>
+
+    <!-- District -->
+    <input
+      id="district"
+      type="text"
+      placeholder="District"
+      required
+    >
+
+    <!-- State -->
+    <input
+      id="state"
+      type="text"
+      placeholder="State"
+      required
+    >
+
+    <!-- Pincode -->
+    <input
+      id="pincode"
+      type="number"
+      placeholder="Pincode"
+      inputmode="numeric"
+      maxlength="6"
+      required
+    >
+
+    <button onclick="placeOrder()">Pay via UPI</button>
+  </div>
+</main>
+
+<footer class="footer"></footer>
+
+<script>
+function placeOrder() {
+
+  const order = {
+    mobile: mobile.value.trim(),
+    address: address.value.trim(),
+    district: district.value.trim(),
+    state: state.value.trim(),
+    pincode: pincode.value.trim()
+  };
+
+  /* ===== BASIC VALIDATION ===== */
+  if (
+    order.mobile.length !== 10 ||
+    !order.address ||
+    !order.district ||
+    !order.state ||
+    order.pincode.length !== 6
+  ) {
+    alert("Please enter valid delivery details");
+    return;
+  }
+
+  fetch(API_BASE + "/orders", {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(order)
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("Order failed");
+    alert("Order placed successfully");
+    window.location.href = "orders.html";
+  })
+  .catch(err => alert(err.message));
+}
+</script>
+
+</body>
+</html>
