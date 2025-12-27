@@ -5,16 +5,14 @@
   <title>Admin Categories | Gifts_and_Bows</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- STYLES -->
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/admin.css">
 
-  <!-- CORE JS -->
+  <!-- MUST LOAD APP.JS -->
   <script defer src="../js/app.js"></script>
 </head>
 <body>
 
-<!-- ================= ADMIN NAVBAR ================= -->
 <header class="admin-navbar">
   <div class="admin-nav-container">
     <div class="admin-logo">Gifts_and_Bows · Admin</div>
@@ -32,28 +30,17 @@
   </div>
 </header>
 
-<!-- ================= MAIN ================= -->
 <main class="admin-container">
 
   <h1 class="admin-title">Manage Categories</h1>
   <p class="admin-subtitle">Add or remove product categories</p>
 
-  <!-- ADD CATEGORY -->
   <div class="admin-card">
     <h3>Add New Category</h3>
-
-    <input
-      id="categoryName"
-      type="text"
-      placeholder="Category name"
-    />
-
-    <button class="admin-btn" onclick="addCategory()">
-      Add Category
-    </button>
+    <input id="categoryName" type="text" placeholder="Category name">
+    <button class="admin-btn" onclick="addCategory()">Add Category</button>
   </div>
 
-  <!-- CATEGORY LIST -->
   <div class="admin-card">
     <h3>Existing Categories</h3>
     <ul id="categoryList" class="admin-list"></ul>
@@ -63,57 +50,31 @@
 
 <footer class="footer"></footer>
 
-<!-- ================= SCRIPT ================= -->
 <script>
-/* =====================================================
-   API CONFIG
-   ===================================================== */
-
-const API_BASE = "https://gifts-and-bows-backend.onrender.com";
-const ADMIN_API = `${API_BASE}/api/admin/categories`;
+const ADMIN_API = API_BASE + "/admin/categories";
 
 document.addEventListener("DOMContentLoaded", loadCategories);
 
-/* =====================================================
-   LOAD CATEGORIES
-   ===================================================== */
 function loadCategories() {
-  fetch(ADMIN_API, {
-    headers: authHeaders("GET")
-  })
-    .then(res => {
-      if (!res.ok) throw new Error("Failed to load categories");
-      return res.json();
-    })
+  fetch(ADMIN_API, { headers: authHeaders("GET") })
+    .then(res => res.json())
     .then(data => {
       const list = document.getElementById("categoryList");
       list.innerHTML = "";
-
       data.forEach(cat => {
         list.innerHTML += `
           <li>
             <span>${cat.name}</span>
-            <button class="danger" onclick="deleteCategory(${cat.id})">
-              Delete
-            </button>
+            <button class="danger" onclick="deleteCategory(${cat.id})">Delete</button>
           </li>
         `;
       });
-    })
-    .catch(err => alert(err.message));
+    });
 }
 
-/* =====================================================
-   ADD CATEGORY
-   ===================================================== */
 function addCategory() {
-  const nameInput = document.getElementById("categoryName");
-  const name = nameInput.value.trim();
-
-  if (!name) {
-    alert("Category name required");
-    return;
-  }
+  const name = document.getElementById("categoryName").value.trim();
+  if (!name) return alert("Category name required");
 
   fetch(ADMIN_API, {
     method: "POST",
@@ -121,16 +82,13 @@ function addCategory() {
     body: JSON.stringify({ name })
   })
     .then(res => {
-      if (!res.ok) throw new Error("Failed to add category");
-      nameInput.value = "";
+      if (!res.ok) throw new Error();
+      document.getElementById("categoryName").value = "";
       loadCategories();
     })
-    .catch(err => alert(err.message));
+    .catch(() => alert("Failed to add category"));
 }
 
-/* =====================================================
-   DELETE CATEGORY
-   ===================================================== */
 function deleteCategory(id) {
   if (!confirm("Delete this category?")) return;
 
@@ -139,10 +97,10 @@ function deleteCategory(id) {
     headers: authHeaders("DELETE")
   })
     .then(res => {
-      if (!res.ok) throw new Error("Delete failed");
+      if (!res.ok) throw new Error();
       loadCategories();
     })
-    .catch(err => alert(err.message));
+    .catch(() => alert("Delete failed"));
 }
 </script>
 

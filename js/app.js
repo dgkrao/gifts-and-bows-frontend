@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
   injectNavbar();
   injectFooter();
   protectAdminPages();
+  pageGuards();
 });
 
 /* =====================================================
@@ -55,6 +56,29 @@ function logout() {
 }
 
 /* =====================================================
+   PAGE GUARDS
+   ===================================================== */
+
+function pageGuards() {
+  const path = window.location.pathname;
+
+  // Redirect logged-in users away from login/register
+  if (
+    (path.endsWith("login.html") || path.endsWith("register.html")) &&
+    getToken()
+  ) {
+    window.location.href = "index.html";
+  }
+
+  // Enter key login
+  if (path.endsWith("login.html")) {
+    document.addEventListener("keydown", e => {
+      if (e.key === "Enter") login();
+    });
+  }
+}
+
+/* =====================================================
    NAVBAR INJECTION
    ===================================================== */
 
@@ -83,7 +107,7 @@ function renderUserNavbar(header) {
   header.innerHTML = `
     <div class="nav-container">
       <div class="logo">
-        <img src="../assets/logo/logo.png">
+        <img src="../assets/logo/logo.png" alt="logo">
         <span>Gifts_and_Bows</span>
       </div>
 
@@ -189,7 +213,10 @@ function loadUserCategories() {
 
       dropdown.innerHTML = categories.length
         ? categories
-            .map(c => `<a href="products.html?category=${c.id}">${c.name}</a>`)
+            .map(
+              c =>
+                `<a href="products.html?category=${c.id}">${c.name}</a>`
+            )
             .join("")
         : `<span style="padding:10px;">No categories</span>`;
     })
@@ -240,7 +267,7 @@ function login() {
         ? (window.location.href = "../admin/dashboard.html")
         : (window.location.href = "index.html");
     })
-    .catch(e => alert(e.message));
+    .catch(err => alert(err.message));
 }
 
 function register() {
@@ -255,10 +282,10 @@ function register() {
   })
     .then(res => {
       if (!res.ok) throw new Error("Registration failed");
-      alert("Registered successfully");
+      alert("Registered successfully. Please login.");
       window.location.href = "login.html";
     })
-    .catch(e => alert(e.message));
+    .catch(err => alert(err.message));
 }
 
 /* =====================================================
